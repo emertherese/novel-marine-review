@@ -41,47 +41,67 @@ wos_dat <- wos_dat %>%
 # some summary tables:
 
 # types of literature
-summary_doc_type <- wos_dat %>%
+summary_doc_type_dat <- wos_dat %>%
   group_by(document_type) %>%
   summarise(count = n()) %>%
   ungroup() %>%
   arrange(desc(count))
 
-summary_doc_type
+summary_doc_type_dat
 
 # publishing papers and getting citations over time
-summary_year <- wos_dat %>%
+summary_year_dat <- wos_dat %>%
   group_by(publication_year) %>%
   summarise(papers = n(),
             citations = sum(`times_cited,_all_databases`, na.rm = TRUE)) %>%
   ungroup() %>%
   arrange(desc(publication_year))
 
-summary_year
+summary_year_dat
 
-with(summary_year,
-     plot(x = publication_year, y = papers))
+# visualise
+plot_publications <- ggplot(data = summary_year_dat,
+                            aes(x = publication_year, y = papers)) +
+  labs(x = "Publication year", 
+       y = "Number of papers published") +
+  geom_vline(xintercept = 2006, lty = 2, col = "grey30") +
+  geom_point() +
+  geom_line() +
+  theme_bw()
 
-with(summary_year,
-     plot(x = publication_year, y = citations))
+plot_citations <- ggplot(data = summary_year_dat,
+                         aes(x = publication_year, y = citations)) +
+  labs(x = "Publication year", 
+       y = "Number of citations") +
+  geom_vline(xintercept = 2006, lty = 2, col = "grey30") +
+  geom_point() +
+  geom_line() +
+  theme_bw()
 
-# languages
-summary_language <- wos_dat %>%
-  group_by(language) %>%
-  summarise(count = n()) %>%
-  ungroup() %>%
-  arrange(desc(count))
+plot_publications
+plot_citations
 
-summary_language
+#
+
+# # languages
+# summary_language_dat <- wos_dat %>%
+#   group_by(language) %>%
+#   summarise(count = n()) %>%
+#   ungroup() %>%
+#   arrange(desc(count))
+# 
+# summary_language_dat
+# # why doesn't language pop up as anything? it's all NA values?
 
 #
 
 # search for marine / ocean / coast / water / aquatic / salt
+
+# simple table search
 wos_dat %>%
   pull(article_title) %>%
   str_detect(pattern = "marine") %>%
   table()
-
 
 # create a vector of marine terms to look for
 marine_terms <- c("marine", "aquatic", "ocean", "coast", "water")
@@ -105,7 +125,7 @@ table(wos_dat$watery_abstract)
 #
 
 # re-do the papers over time by marine and non-marine contributions
-summary_year <- wos_dat %>%
+watery_abstract_dat <- wos_dat %>%
   group_by(publication_year, watery_abstract) %>%
   summarise(papers = n(),
             citations = sum(`times_cited,_all_databases`, na.rm = TRUE)) %>%
@@ -113,27 +133,28 @@ summary_year <- wos_dat %>%
   arrange(desc(publication_year)) %>%
   filter(publication_year != 2026)
 
-with(summary_year,
-     plot(x = publication_year, y = papers))
-
-with(summary_year,
-     plot(x = publication_year, y = citations))
+watery_abstract_dat
 
 # stacked bar plot
-ggplot(summary_year,
-       aes(x = publication_year, y = papers,
-           fill = watery_abstract)) + 
+plot_marine_abstract <- ggplot(watery_abstract_dat,
+                               aes(x = publication_year, y = papers,
+                                   fill = watery_abstract)) + 
   geom_bar(position = position_stack(reverse = TRUE),
            stat = "identity") +
+  scale_fill_manual(values = c("grey20", "grey60")) +
+  labs(x = "Publication year", y = "Number of publications",
+       fill = "Abstract\ncontent") +
   geom_vline(xintercept = 2006, lty = 2) +
   theme_bw()
+
+plot_marine_abstract
 
 #
 
 # proportion?
 
 # re-do the papers over time by marine and non-marine contributions
-  summary_year <- wos_dat %>%
+prop_marine_dat <- wos_dat %>%
   group_by(publication_year) %>%
   summarise(papers = n(),
             proportion = length(which(watery_abstract == "marine"))/n()) %>%
@@ -141,21 +162,36 @@ ggplot(summary_year,
   arrange(desc(publication_year)) %>%
   filter(publication_year != 2026)
 
-with(summary_year,
-     plot(x = publication_year, y = proportion))
+# summary on that!
+boxplot(prop_marine_dat$proportion)
+mean(prop_marine_dat$proportion) # on average, a proportion of 22.88% of studies
+# even MENTION marine or aquatic (eco)systems
 
-with(summary_year,
-     plot(x = publication_year, y = citations))
+# what about the "recent" studies, after 2006 (Hobbs novel ecosystems)
+prop_marine_dat %>%
+  filter(publication_year > 2006) %>%
+  pull(proportion) %>%
+  mean() # 19.70% of studies post-Hobbs have even MENTIONED the marine world
 
-# stacked bar plot
-ggplot(summary_year,
-       aes(x = publication_year, y = papers,
-           fill = watery_abstract)) + 
-  geom_bar(position = position_stack(reverse = TRUE),
-           stat = "identity") +
-  geom_vline(xintercept = 2006, lty = 2) +
-  theme_bw()
+#
 
+# let's now filter for all the abstracts identified as "watery"
+# what do they actually discuss? what scientific contribution? quantitative?
+watery_wos_dat <- wos_dat %>%
+  filter(watery_abstract == "marine")
+
+table(watery_wos_dat$watery_title) # woah only 22.60% of their TITLES are watery
+# marine    non-marine 
+# 47        161 
+
+# read some abstracts? firstly of the watery abstract ones
+# we could export these, and put them into excel again after manually assigning
+# them a Y/N relevance and a Y/N quantitative (or qual, quant, theory, review)
+write.csv(watery_wos_dat, "output/watery-web-of-science-results.csv")
+
+#
+
+#
 
 #
 
