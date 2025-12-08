@@ -232,27 +232,6 @@ marine_stack_dat <- marine_stack_dat %>%
   mutate(label = paste(class, " (", number_abstracts, ")",
                        sep = ""))
 
-# # plot
-# ggplot(data = marine_stack_dat,
-#        aes(x = factor(bar, levels = c("marine_content",
-#                                       "dimension",
-#                                       "novelty_measured",
-#                                       "novelty_study_type")), 
-#            y = prop_abstracts,
-#            fill = class)) +
-#   labs(x = "Content of publications",
-#        y = "Proportion of publications") +
-#   geom_bar(position = "stack", stat = "identity") +
-#   geom_text(aes(label = class), 
-#             size = 3, position = position_stack(vjust = 0.5)) +
-#   theme(legend.position = "none")
-
-# # set class colours (corresponding to all alphabetised "class" observations):
-# class_colours <- c("#785EF0", "#DC267F", "#FE6100", "grey20", "grey20",
-#                    "grey60", "grey60", "#FFB000", "grey60") # IBM scheme
-# text_colours <- c("black", "black", "black", "black", "black",
-#                   "white", "black", "white", "black")
-
 # set a fully grayscale version of colours:
 class_colours_bw <- c("grey10", "grey30", "grey40", "grey20", "grey20",
                       "grey70", "grey70", "grey10", "grey70")
