@@ -1,0 +1,8 @@
+Web of Science searches -- 7 November 2025
+downloaded the first 1000 most relevant search results
+
+query link:
+https://www.webofscience.com/wos/woscc/summary/204dbc23-69f9-4d29-9dd2-e3d19d1a2d4a-018716c2f8/0502142a-9a8e-40c6-bc27-5046ff867728-018716bbbd/relevance/1
+
+query terms:
+(((TS = novel ecosyste*) OR (TS = ecological novelty)) OR (TS = novel ecolog*))
