@@ -254,7 +254,8 @@ plot_marine_stack <- ggplot(
                               "novelty quantification")) +
   labs(x = "Content of publications",
        y = "Proportion of publications") +
-  geom_bar(position = "stack", stat = "identity") +
+  geom_bar(position = "stack", stat = "identity",
+           width = 0.75) +
   geom_text(aes(label = label), 
             size = 3, position = position_stack(vjust = 0.5),
             colour = text_colours_bw) +
@@ -315,6 +316,11 @@ focus_dat <- marine_dat %>%
 # check
 focus_dat
 
+# what is the subject matter of these papers?
+focus_dat %>%
+  select(article_title, dimension, novelty_study_type, system) %>%
+  arrange(dimension, novelty_study_type)
+
 #
 
 #
@@ -336,7 +342,7 @@ dev.off()
 # marine abstracts (n = 143)
 
 agg_png("figures/marine-abstracts-content.png",
-        width = 5, height = 4.5, units = "in",
+        width = 5.5, height = 4.5, units = "in",
         scaling = 1, res = 1000)
 
 plot_marine_stack
