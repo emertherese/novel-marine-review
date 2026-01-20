@@ -1,7 +1,7 @@
 ##-----------------------------------------------##
 ##  METHODS IN ECOLOGY AND EVOLUTION REVIEW      ##
 ##  Quantifying and defining marine novelty      ##
-##  Emer Cunningham - November 2025              ##
+##  Emer Cunningham - January 2025              ##
 ##-----------------------------------------------##
 
 # load packages
@@ -9,11 +9,17 @@ library(ragg) # for saving plots
 library(readxl) # for reading WoS search exports
 library(tidyverse) # for many helpful functions
 
-# load Web of Science searches -- 7 November 2025
+# load Web of Science searches -- 20 January 2025
 # query link below, downloaded top 1000 most relevant search results
-# https://www.webofscience.com/wos/woscc/summary/204dbc23-69f9-4d29-9dd2-e3d19d1a2d4a-018716c2f8/0502142a-9a8e-40c6-bc27-5046ff867728-018716bbbd/relevance/1
-# i.e., (((TS = novel ecosyste*) OR (TS = ecological novelty)) OR (TS = novel ecolog*))
-wos_dat <- read_excel("data/wos-novel-ecosystems.xls")
+# for two adjacent fields, to contextualise the proportion of marine:non-marine
+
+# community ecology:
+# https://www.webofscience.com/wos/woscc/summary/3a65bb68-d0ff-43f0-86a0-33891d469678-0199c18d03/relevance/1
+wos_comm_dat <- read_excel("data/wos-community-ecology.xls")
+
+# functional ecology:
+# https://www.webofscience.com/wos/woscc/summary/7d1f54ab-d14e-43f1-b32d-f1220c6589cd-0199c183da/relevance/1
+wos_func_dat <- read_excel("data/wos-functional-ecology.xls")
 
 #
 
