@@ -13,11 +13,13 @@ Web of Science comparative searches -- 20 January 2026
 downloaded the first 1000 most relevant search results (for two adjacent fields of research)
 
 query link:
-https://www.webofscience.com/wos/woscc/summary/02069af7-ea7e-461a-8d21-0658b6365228-0199c0f763/relevance/1
+https://www.webofscience.com/wos/woscc/summary/3a65bb68-d0ff-43f0-86a0-33891d469678-0199c18d03/relevance/1
 
 query terms:
 (((TS = community ecology) OR (TS = community composition)) OR (TS = community change))
 
 query link:
+https://www.webofscience.com/wos/woscc/summary/7d1f54ab-d14e-43f1-b32d-f1220c6589cd-0199c183da/relevance/1
 
 query terms:
+(((TS = functional ecology) OR (TS = functional diversity)) OR (TS = ecosystem function))

@@ -23,14 +23,14 @@ wos_func_dat <- read_excel("data/wos-functional-ecology.xls")
 
 #
 
-#### 1. process WoS search data #####
+#### 1. community ecology #####
 
 # check
-head(wos_dat)
-names(wos_dat)
+head(wos_comm_dat)
+names(wos_comm_dat)
 
 # let's clean some things up -- select and rename columns
-wos_dat <- wos_dat %>%
+wos_comm_dat <- wos_comm_dat %>%
   rename_all(tolower) %>%
   select("document type", "publication year", "publication date", 
          "article title", "source title", "language",
@@ -41,7 +41,7 @@ wos_dat <- wos_dat %>%
 # some summary tables:
 
 # types of literature
-summary_doc_type_dat <- wos_dat %>%
+summary_doc_type_dat <- wos_comm_dat %>%
   group_by(document_type) %>%
   summarise(count = n()) %>%
   ungroup() %>%
@@ -50,7 +50,7 @@ summary_doc_type_dat <- wos_dat %>%
 summary_doc_type_dat
 
 # publishing papers and getting citations over time
-summary_year_dat <- wos_dat %>%
+summary_year_dat <- wos_comm_dat %>%
   group_by(publication_year) %>%
   summarise(papers = n(),
             citations = sum(`times_cited,_all_databases`, na.rm = TRUE)) %>%
@@ -60,7 +60,7 @@ summary_year_dat <- wos_dat %>%
 summary_year_dat
 
 # visualise
-plot_publications <- ggplot(data = summary_year_dat,
+plot_comm_publications <- ggplot(data = summary_year_dat,
                             aes(x = publication_year, y = papers)) +
   labs(x = "Publication year", 
        y = "Number of papers published") +
@@ -69,7 +69,7 @@ plot_publications <- ggplot(data = summary_year_dat,
   geom_line() +
   theme_bw()
 
-plot_citations <- ggplot(data = summary_year_dat,
+plot_comm_citations <- ggplot(data = summary_year_dat,
                          aes(x = publication_year, y = citations)) +
   labs(x = "Publication year", 
        y = "Number of citations") +
@@ -78,20 +78,14 @@ plot_citations <- ggplot(data = summary_year_dat,
   geom_line() +
   theme_bw()
 
-plot_publications
-plot_citations
+plot_comm_publications
+plot_comm_citations
 
 #
 
-#### 2. identify marine-related works ####
+### identify marine-related works ###
 
 # search for marine / aquatic / ocean / coast / benthic / pelagic / estuary
-
-# simple table search -- is "marine" in the title?
-wos_dat %>%
-  pull(article_title) %>%
-  str_detect(pattern = "marine") %>%
-  table()
 
 # create a vector of marine terms to look for
 marine_terms <- c("marine", "aquatic", "ocean", "coast",
@@ -101,7 +95,7 @@ marine_terms <- c("marine", "aquatic", "ocean", "coast",
 marine_terms_or <- paste(marine_terms, collapse = "|")
 
 # detect these strings in the title and abstract of each article
-wos_dat <- wos_dat %>%
+wos_comm_dat <- wos_comm_dat %>%
   mutate(watery_title = case_when(str_detect(article_title,
                                              marine_terms_or) == TRUE  ~ "marine",
                                   .default = "non-marine")) %>%
@@ -110,13 +104,13 @@ wos_dat <- wos_dat %>%
                                      .default = "non-marine"))
 
 # what are our proportions looking like?
-table(wos_dat$watery_title)    # 36 marine-related titles
-table(wos_dat$watery_abstract) # 143 marine-related abstracts
+table(wos_comm_dat$watery_title)    # 72 (vs. 36 novel) marine-related titles
+table(wos_comm_dat$watery_abstract) # 215 (vs. 143 novel) marine-related abstracts
 
 #
 
 # re-do the papers-over-time-plot by marine and non-marine contributions
-watery_abstract_dat <- wos_dat %>%
+watery_abstract_dat <- wos_comm_dat %>%
   group_by(publication_year, watery_abstract) %>%
   summarise(papers = n(),
             citations = sum(`times_cited,_all_databases`, na.rm = TRUE)) %>%
@@ -127,7 +121,7 @@ watery_abstract_dat <- wos_dat %>%
 watery_abstract_dat
 
 # stacked bar plot
-plot_marine_abstract <- ggplot(watery_abstract_dat,
+plot_comm_abstract <- ggplot(watery_abstract_dat,
                                aes(x = publication_year, y = papers,
                                    fill = watery_abstract)) + 
   geom_bar(position = position_stack(reverse = TRUE),
@@ -138,14 +132,14 @@ plot_marine_abstract <- ggplot(watery_abstract_dat,
   geom_vline(xintercept = 2006, lty = 2) +
   theme_bw()
 
-plot_marine_abstract
+plot_comm_abstract
 
 #
 
 # over time, what proportion of published studies have marine-related abstracts?
 
 # re-do the papers over time by marine and non-marine contributions
-prop_marine_dat <- wos_dat %>%
+prop_comm_dat <- wos_comm_dat %>%
   group_by(publication_year) %>%
   summarise(papers = n(),
             proportion = length(which(watery_abstract == "marine"))/n()) %>%
@@ -154,182 +148,240 @@ prop_marine_dat <- wos_dat %>%
   filter(publication_year != 2026)
 
 # visualise the spread of annual marine study proportions
-boxplot(prop_marine_dat$proportion,
-        xlab = "Proportion of studies\nwith marine-related abstracts")
+boxplot(prop_comm_dat$proportion,
+        xlab = "Proportion of studies\nwith marine-related abstracts",
+        ylim = c(0, 1))
 
-# on average, a proportion of 18.92% of studies
+# on average, a proportion of 18.06% of studies
+# even MENTION marine or aquatic (eco)systems
+mean(prop_comm_dat$proportion) * 100
+
+# plot proportion of marine studies over time:
+plot_comm_prop <- ggplot(data = prop_comm_dat,
+                         aes(x = publication_year, y = proportion)) +
+  labs(x = "Publication year", 
+       y = "Proportion of studies with marine-related abstracts") +
+  ylim(0, 1) +
+  geom_vline(xintercept = 2006, lty = 2, col = "grey30") +
+  geom_point() +
+  geom_line() +
+  theme_bw()
+
+plot_comm_prop
+
+#
+
+# # what about the "recent" studies, after 2006 (Hobbs novel ecosystems)
+# prop_marine_dat %>%
+#   filter(publication_year > 2006) %>%
+#   pull(proportion) %>%
+#   mean() # 21.14% of studies post-Hobbs mention marine terms in their abstracts
+# 
+# prop_marine_dat %>%
+#   filter(publication_year > 2006) %>%
+#   pull(proportion) %>%
+#   sd() # standard deviation = 5.74% 
+# 
+# #
+# 
+# # let's now filter for all the abstracts identified as "watery"
+# # what do they actually discuss? what scientific contribution? quantitative?
+# watery_wos_comm_dat <- wos_comm_dat %>%
+#   filter(watery_abstract == "marine")
+# 
+# # additionally, 22.37% of their titles are watery
+# table(watery_wos_comm_dat$watery_title) 
+# # marine    non-marine 
+# # 32        111 
+
+#
+
+#### 2. functional ecology ####
+
+# check
+head(wos_func_dat)
+names(wos_func_dat)
+
+# let's clean some things up -- select and rename columns
+wos_func_dat <- wos_func_dat %>%
+  rename_all(tolower) %>%
+  select("document type", "publication year", "publication date", 
+         "article title", "source title", "language",
+         "authors", "author keywords", "abstract", 
+         "times cited, all databases", "publisher") %>%
+  rename_with(~ gsub(" ","_", .x), contains(" "))
+
+# some summary tables:
+
+# types of literature
+summary_doc_type_dat <- wos_func_dat %>%
+  group_by(document_type) %>%
+  summarise(count = n()) %>%
+  ungroup() %>%
+  arrange(desc(count))
+
+summary_doc_type_dat
+
+# publishing papers and getting citations over time
+summary_year_dat <- wos_func_dat %>%
+  group_by(publication_year) %>%
+  summarise(papers = n(),
+            citations = sum(`times_cited,_all_databases`, na.rm = TRUE)) %>%
+  ungroup() %>%
+  arrange(desc(publication_year))
+
+summary_year_dat
+
+# visualise
+plot_func_publications <- ggplot(data = summary_year_dat,
+                            aes(x = publication_year, y = papers)) +
+  labs(x = "Publication year", 
+       y = "Number of papers published") +
+  geom_vline(xintercept = 2006, lty = 2, col = "grey30") +
+  geom_point() +
+  geom_line() +
+  theme_bw()
+
+plot_func_citations <- ggplot(data = summary_year_dat,
+                         aes(x = publication_year, y = citations)) +
+  labs(x = "Publication year", 
+       y = "Number of citations") +
+  geom_vline(xintercept = 2006, lty = 2, col = "grey30") +
+  geom_point() +
+  geom_line() +
+  theme_bw()
+
+plot_func_publications
+plot_func_citations
+
+#
+
+### identify marine-related works ###
+
+# search for marine / aquatic / ocean / coast / benthic / pelagic / estuary
+
+# create a vector of marine terms to look for
+marine_terms <- c("marine", "aquatic", "ocean", "coast",
+                  "benth", "pelagi", "estuar")
+
+# we're happy to find any one of these terms -- use the "or" symbol
+marine_terms_or <- paste(marine_terms, collapse = "|")
+
+# detect these strings in the title and abstract of each article
+wos_func_dat <- wos_func_dat %>%
+  mutate(watery_title = case_when(str_detect(article_title,
+                                             marine_terms_or) == TRUE  ~ "marine",
+                                  .default = "non-marine")) %>%
+  mutate(watery_abstract = case_when(str_detect(abstract,
+                                                marine_terms_or) == TRUE ~ "marine",
+                                     .default = "non-marine"))
+
+# what are our proportions looking like?
+table(wos_func_dat$watery_title)    # 89 (vs. 36 novel) marine-related titles
+table(wos_func_dat$watery_abstract) # 226 (vs. 143 novel) marine-related abstracts
+
+#
+
+# re-do the papers-over-time-plot by marine and non-marine contributions
+watery_abstract_dat <- wos_func_dat %>%
+  group_by(publication_year, watery_abstract) %>%
+  summarise(papers = n(),
+            citations = sum(`times_cited,_all_databases`, na.rm = TRUE)) %>%
+  ungroup() %>%
+  arrange(desc(publication_year)) %>%
+  filter(publication_year != 2026)
+
+watery_abstract_dat
+
+# stacked bar plot
+plot_func_abstract <- ggplot(watery_abstract_dat,
+                               aes(x = publication_year, y = papers,
+                                   fill = watery_abstract)) + 
+  geom_bar(position = position_stack(reverse = TRUE),
+           stat = "identity") +
+  scale_fill_manual(values = c("grey20", "grey60")) +
+  labs(x = "Publication year", y = "Number of publications",
+       fill = "Abstract\ncontent") +
+  geom_vline(xintercept = 2006, lty = 2) +
+  theme_bw()
+
+plot_func_abstract
+
+#
+
+# over time, what proportion of published studies have marine-related abstracts?
+
+# re-do the papers over time by marine and non-marine contributions
+prop_func_dat <- wos_func_dat %>%
+  group_by(publication_year) %>%
+  summarise(papers = n(),
+            proportion = length(which(watery_abstract == "marine"))/n()) %>%
+  ungroup() %>%
+  arrange(desc(publication_year)) %>%
+  filter(publication_year != 2026)
+
+# visualise the spread of annual marine study proportions
+boxplot(prop_func_dat$proportion,
+        xlab = "Proportion of studies\nwith marine-related abstracts",
+        ylim = c(0, 1))
+
+# on average, a proportion of 22.44% of studies
 # even MENTION marine or aquatic (eco)systems
 mean(prop_marine_dat$proportion) * 100
 
-# what about the "recent" studies, after 2006 (Hobbs novel ecosystems)
-prop_marine_dat %>%
-  filter(publication_year > 2006) %>%
-  pull(proportion) %>%
-  mean() # 13.03% of studies post-Hobbs mention marine terms in their abstracts
+# plot proportion of marine studies over time:
+plot_func_prop <- ggplot(data = prop_func_dat,
+                         aes(x = publication_year, y = proportion)) +
+  labs(x = "Publication year", 
+       y = "Proportion of studies with marine-related abstracts") +
+  ylim(0, 1) +
+  geom_vline(xintercept = 2006, lty = 2, col = "grey30") +
+  geom_point() +
+  geom_line() +
+  theme_bw()
 
-prop_marine_dat %>%
-  filter(publication_year > 2006) %>%
-  pull(proportion) %>%
-  sd() # standard deviation = 5.74% 
-
-#
-
-# let's now filter for all the abstracts identified as "watery"
-# what do they actually discuss? what scientific contribution? quantitative?
-watery_wos_dat <- wos_dat %>%
-  filter(watery_abstract == "marine")
-
-# additionally, 22.37% of their titles are watery
-table(watery_wos_dat$watery_title) 
-# marine    non-marine 
-# 32        111 
-
-# save these abstracts for further manual analysis of their content
-#write.csv(watery_wos_dat, "output/watery-web-of-science-results.csv")
+plot_func_prop
 
 #
 
-#### 3. analyse marine-related abstracts ####
+#### 3. proportions plot ####
 
-# I manually read these abstracts and assigned them to a few categories:
+# bring all data together:
+prop_marine_dat$topic <- "novel"
+prop_comm_dat$topic <- "community"
+prop_func_dat$topic <- "functional"
 
-# marine_content = assess whether the paper is about marine science
-# dimension = broad content of the paper: do the authors study climate novelty,
-#             ecological, evolutionary, or social novelty, or just use novelty
-#             as a "technical" term?
-# novelty_measured = do the authors quantify novelty directly? 
-# novelty_study_type = note the context for novelty research: are we studying
-#                      empirical ecological novelty or biotechnology innovation?
-# study_system = note the paper's focal taxa, place, or field
+prop_dat <- rbind(prop_marine_dat, prop_comm_dat, prop_func_dat)
 
-# read in the manually-assigned abstracts
-marine_dat <- read.csv("output/watery-web-of-science-results_EC.csv")
+# plot all proportions over time:
 
-# let's firstly visualise everything
-marine_stack_dat <- marine_dat %>%
-  select(marine_content:novelty_measured) %>%
-  mutate(marine_content = ifelse(marine_content == TRUE,
-                                 "marine",
-                                 "non-marine"),
-         novelty_measured = ifelse(novelty_measured == TRUE,
-                                   "measured",
-                                   "non-measured"),
-         novelty_measured = ifelse(dimension == "technical",
-                                   NA,
-                                   novelty_measured)) %>%
-  pivot_longer(cols = (marine_content:novelty_measured),
-               names_to = "bar",
-               values_to = "class") %>%
-  filter(!is.na(class)) %>%
-  group_by(bar, class) %>%
-  summarise(number_abstracts = length(class)) %>%
+plot_marine_props <- ggplot(data = prop_dat,
+                            aes(x = publication_year, y = proportion,
+                                col = topic)) +
+  labs(x = "Publication year", 
+       y = "Proportion of marine-related abstracts", 
+       col = "Research\ntopic") +
+  ylim(0, 1) +
+  geom_point() +
+  geom_line() +
+  scale_colour_manual(values = c("novel" = "black", 
+                                 "community" = "grey60",
+                                 "functional" = "grey30")) +
+  geom_vline(xintercept = 2006, lty = 2, col = "grey30") +
+  theme_bw()
+
+plot_marine_props
+
+# summarise the mean and standard deviations:
+
+prop_summary_dat <- prop_dat %>%
+  #filter(publication_year > 2006) %>%
+  group_by(topic) %>%
+  summarise(prop_mean = mean(proportion, na.rm = TRUE),
+            prop_sd = sd(proportion, na.rm = TRUE)) %>%
   ungroup()
 
-# check
-marine_stack_dat
-
-# also calculate proportions
-marine_stack_dat <- marine_stack_dat %>%
-  group_by(bar) %>%
-  mutate(prop_abstracts = number_abstracts / sum(number_abstracts))
-
-# also make an annoying string like: "dimension (number_abstracts)"
-marine_stack_dat <- marine_stack_dat %>%
-  mutate(label = paste(class, " (", number_abstracts, ")",
-                       sep = ""))
-
-# set a fully grayscale version of colours:
-class_colours_bw <- c("grey10", "grey30", "grey40", "grey20", "grey20",
-                      "grey70", "grey70", "grey10", "grey70")
-text_colours_bw <- c("white", "white", "white", "white", "black",
-                     "white", "black", "white", "black")
-
-#
-
-# plot without novelty_study_type
-plot_marine_stack <- ggplot(
-  data = marine_stack_dat %>%
-    filter(bar != "novelty_study_type"),
-  aes(x = factor(bar, levels = c("marine_content",
-                                 "dimension",
-                                 "novelty_measured")), 
-      y = prop_abstracts,
-      fill = class)) +
-  scale_fill_manual(values = class_colours_bw) +
-  scale_x_discrete(labels = c("marine focus", "novelty focus",
-                              "novelty quantification")) +
-  labs(x = "Content of publications",
-       y = "Proportion of publications") +
-  geom_bar(position = "stack", stat = "identity",
-           width = 0.75) +
-  geom_text(aes(label = label), 
-            size = 3, position = position_stack(vjust = 0.5),
-            colour = text_colours_bw) +
-  theme_classic() +
-  theme(legend.position = "none")
-
-# visualise
-plot_marine_stack
-
-#
-
-### let's check the statistics ###
-
-# how many marine-related papers actually had a marine focus?
-marine_dat %>%
-  pull(marine_content) %>%
-  table()
-
-(113/143) * 100 # papers = 79.02% marine
-
-# how many of these marine-focused papers considered novel ecosystems?
-marine_dat %>%
-  filter(marine_content == TRUE) %>%
-  pull(dimension) %>%
-  table()
-
-(37/113) * 100 # papers = 32.74% marine novelty
-
-# how many of these marine novelty-focused papers directly measure novelty?
-marine_dat %>%
-  filter(marine_content == TRUE,
-         dimension != "technical") %>%
-  pull(novelty_measured) %>%
-  table()
-
-(12/37) * 100 # papers = 32.43% quantitative marine novelty
-
-#
-
-# and that means, that out of a total of 1000 search results:
-113/1000 * 100 # 11.30% of papers are marine,
-37/1000 * 100  #  3.70% of papers are about novel marine ecosystems, and
-12/1000 * 100  #  1.20% of papers quantify novel marine ecosystems
-
-#
-
-# now: the marine + novelty + quantitative studies!
-
-# let's save all of the true ecosystem attribute papers that measure novelty
-# (our key focus of quantitative novelty in marine ecosystems)
-focus_dat <- marine_dat %>%
-  filter(marine_content == TRUE,
-         dimension %in% c("ecological", "evolutionary", "climate", "social"),
-         novelty_measured == TRUE) %>%
-  select(-X) %>%
-  as_tibble()
-
-# check
-focus_dat
-
-# what is the subject matter of these papers?
-focus_dat %>%
-  select(article_title, dimension, novelty_study_type, system) %>%
-  arrange(dimension, novelty_study_type)
-
-#
-
-#
+prop_summary_dat
 
 #
 
@@ -337,21 +389,11 @@ focus_dat %>%
 
 # overview (n = 1000)
 
-agg_png("figures/marine-abstracts-over-time.png",
-        width = 7, height = 3.5, units = "in",
+agg_png("figures/marine-proportions-in-ecology.png",
+        width = 7.2, height = 3.5, units = "in",
         scaling = 1, res = 1000)
 
-plot_marine_abstract
-
-dev.off()
-
-# marine abstracts (n = 143)
-
-agg_png("figures/marine-abstracts-content.png",
-        width = 5.5, height = 4.5, units = "in",
-        scaling = 1, res = 1000)
-
-plot_marine_stack
+plot_marine_props
 
 dev.off()
 
