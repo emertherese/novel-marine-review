@@ -375,7 +375,7 @@ plot_marine_props
 # summarise the mean and standard deviations:
 
 prop_summary_dat <- prop_dat %>%
-  #filter(publication_year > 2006) %>%
+  filter(publication_year > 2006) %>%
   group_by(topic) %>%
   summarise(prop_mean = mean(proportion, na.rm = TRUE),
             prop_sd = sd(proportion, na.rm = TRUE)) %>%
