@@ -362,11 +362,11 @@ plot_marine_props <- ggplot(data = prop_dat,
        y = "Proportion of marine-related abstracts", 
        col = "Research\ntopic") +
   ylim(0, 1) +
-  geom_point() +
+  #geom_point() +
   geom_line() +
   scale_colour_manual(values = c("novel" = "black", 
-                                 "community" = "grey60",
-                                 "functional" = "grey30")) +
+                                 "community" = "#D41159",
+                                 "functional" = "#1A85FF")) +
   geom_vline(xintercept = 2006, lty = 2, col = "grey30") +
   theme_bw()
 
