@@ -1,7 +1,6 @@
 ##-----------------------------------------------##
 ##  METHODS IN ECOLOGY AND EVOLUTION REVIEW      ##
 ##  Quantifying and defining marine novelty      ##
-##  Emer Cunningham - November 2025              ##
 ##-----------------------------------------------##
 
 # load packages
