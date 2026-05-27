@@ -290,14 +290,14 @@ marine_dat %>%
   pull(novelty_measured) %>%
   table()
 
-(12/37) * 100 # papers = 32.43% quantitative marine novelty
+(11/37) * 100 # papers = 32.43% quantitative marine novelty
 
 #
 
 # and that means, that out of a total of 1000 search results:
 113/1000 * 100 # 11.30% of papers are marine,
 37/1000 * 100  #  3.70% of papers are about novel marine ecosystems, and
-12/1000 * 100  #  1.20% of papers quantify novel marine ecosystems
+11/1000 * 100  #  1.10% of papers quantify novel marine ecosystems
 
 #
 
@@ -347,5 +347,9 @@ agg_png("figures/marine-abstracts-content.png",
 plot_marine_stack
 
 dev.off()
+
+# also save the focus_dat 11 marine > ecological > quantitative papers
+
+write.csv(focus_dat, "output/marine-ecological-quantitative-papers.csv")
 
 #
